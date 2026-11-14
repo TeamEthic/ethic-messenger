@@ -37,8 +37,6 @@ import com.ethic.messenger.R
 import com.ethic.messenger.data.Repo
 import kotlinx.coroutines.launch
 
-/** Where the subscription is sold. */
-const val PLUS_BUY_URL = "https://playerok.com/products/c28a9d3b0559-podpiska-ethic-v-ethic-messenger"
 
 /** What Ethic+ gives, shown to everyone in Settings. */
 val PLUS_PERKS = listOf(
