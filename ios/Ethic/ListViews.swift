@@ -176,6 +176,7 @@ struct SettingsView: View {
                     NavigationLink { PlusView() } label: { Label("Подписка Ethic+", systemImage: "sparkles") }
                     NavigationLink { ShopView() } label: { Label("Магазин подарков", systemImage: "gift") }
                     NavigationLink { SupportView(staff: false) } label: { Label("Поддержка", systemImage: "questionmark.bubble") }
+                    Button { openURL(URL(string: "https://boosty.to/teamethic")!) } label: { Label("Пожертвовать", systemImage: "heart") }
                     Button { openURL(URL(string: API.base)!) } label: { Label("Открыть сайт", systemImage: "safari") }
                     Button(role: .destructive) { confirmLogout = true } label: { Label("Выйти", systemImage: "rectangle.portrait.and.arrow.right") }
                 }

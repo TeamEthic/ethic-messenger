@@ -421,6 +421,8 @@ private fun SettingsTab() {
                 HorizontalDivider(color = Line)
                 SettingsRow(Icons.Default.NotificationsActive, "Поддержка", "Написать нам о проблеме или идее") { Nav.push(Route.Support(false)) }
                 HorizontalDivider(color = Line)
+                SettingsRow(Icons.Default.Favorite, "Пожертвовать", "Поддержать Ethic на Boosty") { openUrl(ctx, "https://boosty.to/teamethic") }
+                HorizontalDivider(color = Line)
                 SettingsRow(Icons.AutoMirrored.Filled.OpenInNew, "Открыть сайт", "Демонстрация экрана — на компьютере") { openUrl(ctx, Api.BASE) }
                 HorizontalDivider(color = Line)
                 SettingsRow(Icons.AutoMirrored.Filled.Logout, "Выйти", tint = Red, trailing = {}) { confirmLogout = true }
