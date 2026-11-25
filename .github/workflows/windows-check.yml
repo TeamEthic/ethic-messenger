@@ -1,0 +1,39 @@
+name: Проверка Windows
+
+# Installer build for pull requests. Does not publish a release.
+on:
+  pull_request:
+    paths:
+      - 'desktop/**'
+      - '.github/workflows/windows-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: Windows (EXE, без релиза)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Build installer
+        working-directory: desktop
+        shell: bash
+        run: |
+          npm ci --no-audit --no-fund
+          node update-flow.test.js
+          npx electron-builder --win nsis --publish never
+          test -f dist/latest.yml
+          test -f dist/Ethic-Messenger-Setup.exe
+          shopt -s nullglob
+          maps=(dist/*.blockmap)
+          test ${#maps[@]} -gt 0
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows-pr
+          path: desktop/dist/Ethic-Messenger-Setup.exe
+          if-no-files-found: error
