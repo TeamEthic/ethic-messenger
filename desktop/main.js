@@ -39,9 +39,7 @@ function createWindow() {
     icon: path.join(__dirname, 'build', 'icon.png'),
     autoHideMenuBar: true,
     show: false,
-    // No frame and no top strip: the app reaches the window's top edge, minimize / maximize / close sit over it.
-    titleBarStyle: 'hidden',
-    titleBarOverlay: { color: '#00000000', symbolColor: '#cfcfcf', height: TITLE_H },
+    ...windowChrome(),
     webPreferences: { contextIsolation: true, sandbox: true, spellcheck: true },
   });
   win.removeMenu();
@@ -83,16 +81,77 @@ function createWindow() {
   win.on('focus', () => win.flashFrame(false));
 }
 
-// The window is dragged by the app's own headers and empty areas; the headers leave room for the system buttons.
+// Caption height shared by the native overlay and the inset below it.
 const TITLE_H = 32;
 const BUTTONS_W = 146;
+
+// Windows only. Other platforms keep the previous overlay: a transparent strip
+// so the page reaches the top edge and the system buttons float over it.
+function windowChrome() {
+  if (process.platform !== 'win32') {
+    return {
+      titleBarStyle: 'hidden',
+      titleBarOverlay: { color: '#00000000', symbolColor: '#cfcfcf', height: TITLE_H },
+    };
+  }
+  // Hidden title bar draws no app name. The overlay is a solid black caption
+  // with the native minimize / maximize / close glyphs on the right.
+  return {
+    titleBarStyle: 'hidden',
+    titleBarOverlay: { color: '#000000', symbolColor: '#ffffff', height: TITLE_H },
+  };
+}
+
+// Non-Windows: drag from the app headers, and keep those headers clear of the buttons.
 const TITLE_CSS = `
   .auth, .topbar, .side-head, .empty-state, .call-head, .settings::before { -webkit-app-region: drag; }
   .auth-card, button, a, input, textarea, select, label, [contenteditable] { -webkit-app-region: no-drag; }
   .topbar, .call-head { padding-right: ${BUTTONS_W}px !important; }
   .settings::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: ${TITLE_H}px; }
 `;
+
+// Windows: a black caption band, then the app. The band is the drag region
+// (double-click still maximizes, because Chromium treats it as a caption).
+// Native buttons sit in the overlay, so the band stops where they start.
+// The call / video / more pill stays in the chat header, at its own right edge,
+// and the header is in the layout instead of floating over the messages.
+const WIN_TITLE_CSS = `
+  html, body { background: #000 !important; }
+  body::before {
+    content: "";
+    position: fixed;
+    z-index: 2147483646;
+    top: 0;
+    left: env(titlebar-area-x, 0px);
+    width: env(titlebar-area-width, 100%);
+    height: ${TITLE_H}px;
+    background: #000;
+    -webkit-app-region: drag;
+    -webkit-user-select: none;
+  }
+  .app, .auth, .call, .settings, .maint, .ended, .scooter-anim, .lightbox, .modal {
+    top: ${TITLE_H}px !important;
+  }
+  .topbar {
+    position: relative !important;
+    inset: auto !important;
+    margin: 12px 12px 0 !important;
+    flex: none !important;
+    width: auto !important;
+    min-width: 0 !important;
+    align-self: stretch !important;
+    box-sizing: border-box !important;
+    padding: 0 10px !important;
+  }
+  .messages { padding-top: 12px !important; scroll-padding-top: 16px !important; }
+  .call-banner { margin-top: 12px !important; }
+  .member-list { margin-top: 12px !important; }
+`;
 function addTitleBar() {
+  if (process.platform === 'win32') {
+    win.webContents.insertCSS(WIN_TITLE_CSS);
+    return;
+  }
   if (win.webContents.getURL().startsWith(ORIGIN)) win.webContents.insertCSS(TITLE_CSS);
 }
 
