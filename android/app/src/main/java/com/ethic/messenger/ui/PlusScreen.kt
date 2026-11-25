@@ -162,14 +162,6 @@ fun PlusScreen() {
                                 }
                             }
                             if (owner) Text("Вы владелец: выдайте подписку себе в списке ниже.", color = Muted, fontSize = 13.sp)
-                            else {
-                                androidx.compose.material3.Button(
-                                    { runCatching { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(PLUS_BUY_URL))) } },
-                                    Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(14.dp),
-                                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
-                                ) { Text("Купить Ethic+", fontWeight = FontWeight.SemiBold, fontSize = 16.sp) }
-                                Text("Покупка проходит на Playerok. После оплаты подписку включает администрация Ethic.", color = Muted, fontSize = 13.sp)
-                            }
                             androidx.compose.material3.HorizontalDivider(color = Line)
                             Text("Если найдёте человека с толстовкой Ethic, отсканируйте QR-код на ней и получите подарок.", fontSize = 13.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth())
                         } else {

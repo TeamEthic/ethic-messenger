@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.MusicNote
@@ -420,6 +421,8 @@ private fun SettingsTab() {
                 SettingsRow(Icons.Default.CardGiftcard, "Магазин подарков", "Подарки и Ethic Coin") { Nav.push(Route.Shop()) }
                 HorizontalDivider(color = Line)
                 SettingsRow(Icons.Default.NotificationsActive, "Поддержка", "Написать нам о проблеме или идее") { Nav.push(Route.Support(false)) }
+                HorizontalDivider(color = Line)
+                SettingsRow(Icons.Default.Favorite, "Пожертвовать", "Поддержать Ethic на Boosty") { openUrl(ctx, "https://boosty.to/teamethic") }
                 HorizontalDivider(color = Line)
                 SettingsRow(Icons.AutoMirrored.Filled.OpenInNew, "Открыть сайт", "Демонстрация экрана — на компьютере") { openUrl(ctx, Api.BASE) }
                 HorizontalDivider(color = Line)

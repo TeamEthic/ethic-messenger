@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// Where the subscription is sold.
-let plusBuyURL = URL(string: "https://playerok.com/products/c28a9d3b0559-podpiska-ethic-v-ethic-messenger")!
-
 /// What Ethic+ gives, shown to everyone in Settings.
 let plusPerks: [(String, String)] = [
     ("Градиентный ник", "Имя переливается цветом в чатах, в списке участников и в профиле."),
@@ -27,17 +24,9 @@ struct PlusOffer: View {
         Section {
             if owner {
                 Text("Вы владелец: выдайте подписку себе в списке ниже.").foregroundStyle(muted)
-            } else {
-                Link(destination: plusBuyURL) {
-                    Text("Купить Ethic+").font(.headline).foregroundStyle(.black)
-                        .frame(maxWidth: .infinity).padding(.vertical, 12)
-                        .background(.white, in: RoundedRectangle(cornerRadius: 14))
-                }
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             }
         } footer: {
             VStack(alignment: .leading, spacing: 8) {
-                if !owner { Text("Покупка проходит на Playerok. После оплаты подписку включает администрация Ethic.") }
                 Text("Если найдёте человека с толстовкой Ethic, отсканируйте QR-код на ней и получите подарок.").foregroundStyle(.white)
             }
         }
