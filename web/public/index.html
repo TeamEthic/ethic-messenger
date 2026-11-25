@@ -32,7 +32,7 @@
         <div class="code-row"><input name="email" type="email" autocomplete="email" autocapitalize="off" spellcheck="false"><button type="button" class="btn" id="regCodeBtn">Получить код</button></div>
       </div>
       <label class="field-label reg-only email-only">Код из письма <span class="req">*</span><input name="emailCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 цифр"></label>
-      <label class="field-label">Пароль <span class="req">*</span><input name="password" type="password" required minlength="6" autocomplete="current-password"></label>
+      <label class="field-label">Пароль <span class="req">*</span><input name="password" type="password" required minlength="6" maxlength="128" autocomplete="current-password"></label>
       <label class="field-label reg-only invite-field">Код приглашения <span class="req">*</span><input name="invite" autocomplete="off" spellcheck="false"></label>
       <label class="field-label hidden" id="loginCodeRow">Код из письма <span class="req">*</span><input name="loginCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 цифр"><span class="muted small" id="loginCodeHint"></span></label>
       <p class="auth-forgot login-only email-only"><a href="#" id="forgotLink">Забыли пароль?</a></p>
@@ -47,7 +47,7 @@
       </label>
       <p class="muted small" id="resetHint"></p>
       <label class="field-label">Код из письма <span class="req">*</span><input name="code" required inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 цифр"></label>
-      <label class="field-label">Новый пароль <span class="req">*</span><input name="password" type="password" required minlength="6" autocomplete="new-password"></label>
+      <label class="field-label">Новый пароль <span class="req">*</span><input name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="От 8 символов"></label>
       <p id="resetError" class="error"></p>
       <button class="btn primary wide" type="submit">Сменить пароль и войти</button>
       <p class="auth-switch"><a href="#" id="resetBack">Назад ко входу</a></p>
@@ -307,6 +307,7 @@
             </div>
             <form class="email-controls email-only" id="emailForm">
               <div class="field-label">Почта <span class="muted small" id="emailCurrent"></span></div>
+              <div class="code-row"><input id="emailPassword" type="password" maxlength="128" autocomplete="current-password" placeholder="Текущий пароль"></div>
               <div class="code-row"><input id="emailNew" type="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="Новая почта"><button type="button" class="btn" id="emailCodeBtn">Получить код</button></div>
               <div class="code-row hidden" id="emailCodeRow"><input id="emailCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="Код из письма"><button type="submit" class="btn primary">Подтвердить</button></div>
               <p class="error" id="emailError"></p>
@@ -351,6 +352,16 @@
         <p class="muted small">Все устройства, где выполнен вход в ваш аккаунт. Незнакомое — завершите.</p>
         <div class="panel-row" id="devicesActions"><button class="btn small" id="logoutOthers">Выйти на всех других</button><button class="btn small primary hidden" id="linkDeviceBtn">Привязать устройство</button></div>
         <div id="deviceList" class="device-list"></div>
+        <h3 class="settings-sub">Пароль</h3>
+        <p class="muted small">После смены пароля все другие устройства выйдут из аккаунта.</p>
+        <form id="passwordForm" class="password-form">
+          <input type="text" name="username" autocomplete="username" hidden>
+          <label class="field-label">Текущий пароль<input name="oldPassword" type="password" required maxlength="128" autocomplete="current-password"></label>
+          <label class="field-label">Новый пароль<input name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="От 8 символов"></label>
+          <label class="field-label">Повторите новый пароль<input name="password2" type="password" required minlength="8" maxlength="128" autocomplete="new-password"></label>
+          <p class="error" id="passwordError"></p>
+          <button type="submit" class="btn primary">Сменить пароль</button>
+        </form>
       </section>
       <section class="settings-pane hidden" data-pane-id="privacy">
         <h2>Конфиденциальность</h2>
@@ -517,6 +528,6 @@
 </div>
 
 <script src="/vendor/qr/qrcode.js?v=1.4.4"></script>
-<script src="/app.js?v=111"></script>
+<script src="/app.js?v=113"></script>
 </body>
 </html>

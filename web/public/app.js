@@ -378,6 +378,8 @@ function setAuthMode(mode) {
   $('#authSwitchText').textContent = reg ? 'Уже есть учётная запись?' : 'Нужна учётная запись?';
   $('#authSwitch').textContent = reg ? 'Войти' : 'Зарегистрироваться';
   $('#authForm').password.autocomplete = reg ? 'new-password' : 'current-password';
+  // New passwords: 8+; signing in still accepts the older 6-character ones.
+  $('#authForm').password.minLength = reg ? 8 : 6;
   $('#loginLabel').textContent = reg || !emailEnabled ? 'Логин' : 'Логин или почта';
   $('#authError').textContent = '';
   showLoginCode(false);
@@ -923,7 +925,7 @@ function attachmentHtml(m) {
     const pw = w && h ? Math.round(Math.min(400, w, (350 * w) / h)) : 300;
     const style = `width:${pw}px${w && h ? `;aspect-ratio:${w}/${h}` : ''}`;
     // After 30 days the server no longer has the file: the browser shows its cached copy, otherwise a note.
-    const gone = m.imageGone ? ` onerror="this.outerHTML='<div class=&quot;att att-gone&quot;>Фото удалено с сервера через 30 дней</div>'"` : '';
+    const gone = m.imageGone ? ' data-gone="1"' : '';
     return `<img class="att att-photo" src="${esc(m.localUrl || m.image.url)}" data-full="${esc(m.image.url)}" alt="Фото" style="${style}"${gone}>`;
   }
   const f = m.file;
@@ -2113,7 +2115,9 @@ $('#logoutBtn').addEventListener('click', logout);
 $('#emailCodeBtn').addEventListener('click', async () => {
   const email = $('#emailNew').value.trim();
   if (!email) return ($('#emailError').textContent = 'Введите почту');
-  if (await sendCodeBtn($('#emailCodeBtn'), $('#emailError'), () => api('/api/me/email/code', { method: 'POST', body: { email } }))) {
+  const password = $('#emailPassword').value;
+  if (!password) return ($('#emailError').textContent = 'Введите текущий пароль');
+  if (await sendCodeBtn($('#emailCodeBtn'), $('#emailError'), () => api('/api/me/email/code', { method: 'POST', body: { email, password } }))) {
     $('#emailCodeRow').classList.remove('hidden');
     $('#emailCode').focus();
     toast(`Код отправлен на ${email}`);
@@ -2125,7 +2129,7 @@ $('#emailForm').addEventListener('submit', async (e) => {
   try {
     const { user } = await api('/api/me/email', { method: 'POST', body: { email: $('#emailNew').value.trim(), code: $('#emailCode').value } });
     S.me = { ...S.me, ...user };
-    $('#emailNew').value = ''; $('#emailCode').value = '';
+    $('#emailNew').value = ''; $('#emailCode').value = ''; $('#emailPassword').value = '';
     $('#emailCodeRow').classList.add('hidden');
     renderProfileForm();
     toast('Почта привязана');
@@ -2354,6 +2358,7 @@ function adminActions(u) {
   const canDelete = owner && u.role !== 'owner' && !u.username.startsWith('deleted_');
   if (items.length && (canBan || canDelete)) items.push(['-']);
   if (canBan && !u.banned) items.push(['warn', 'Предупредить…']);
+  if (canBan && !u.banned && u.warnings > 0) items.push(['unwarn', 'Снять предупреждения']);
   if (canBan && !u.banned) items.push(u.mute ? ['unmute', 'Снять мут'] : ['mute', 'Замутить…']);
   if (canBan) items.push(u.banned ? ['unban', 'Разблокировать'] : ['ban', 'Заблокировать…', '', true]);
   if (canDelete) items.push(['delete', 'Удалить аккаунт…', '', true]);
@@ -2403,6 +2408,14 @@ async function adminAction(a, u) {
       if (!r) return;
       const { count, banned } = await api(`${url}/warn`, { method: 'POST', body: { reason: r.reason } });
       toast(banned ? `${who} получил ${count}-е предупреждение и заблокирован` : `${who} предупреждён: ${count} из ${u.warnLimit}`);
+    }
+    if (a === 'unwarn') {
+      const r = await ask({ title: `Снять предупреждения с ${who}?`,
+        text: `Сейчас активных предупреждений: ${u.warnings} из ${u.warnLimit}. Счётчик обнулится.`,
+        ok: 'Снять предупреждения' });
+      if (!r) return;
+      await api(`${url}/unwarn`, { method: 'POST' });
+      toast(`Предупреждения с ${who} сняты`);
     }
     if (a === 'unban') {
       await api(`${url}/ban`, { method: 'POST', body: { banned: false } });
@@ -2519,6 +2532,21 @@ $('#deviceList').addEventListener('click', async (e) => {
   const b = e.target.closest('[data-end-device]');
   if (!b || !confirm('Завершить сеанс на этом устройстве? Там придётся войти заново.')) return;
   try { await api(`/id/v1/devices/${encodeURIComponent(b.dataset.endDevice)}`, { method: 'DELETE' }); toast('Сеанс завершён'); Devices.open(); } catch (err) { toast(err.message); }
+});
+// Change the password: every other device is signed out by the server.
+$('#passwordForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = e.target, err = $('#passwordError');
+  err.textContent = '';
+  if (f.password.value !== f.password2.value) return (err.textContent = 'Новые пароли не совпадают');
+  const btn = f.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  try {
+    const r = await api('/api/me/password', { method: 'POST', body: { oldPassword: f.oldPassword.value, password: f.password.value } });
+    f.reset();
+    toast(r.count ? `Пароль изменён. Другие устройства вышли из аккаунта: ${r.count}` : 'Пароль изменён');
+    Devices.open();
+  } catch (ex) { err.textContent = ex.message; } finally { btn.disabled = false; }
 });
 $('#logoutOthers').addEventListener('click', async () => {
   if (!confirm('Выйти на всех устройствах, кроме этого?')) return;
@@ -4094,3 +4122,14 @@ updateComposerButtons();
 boot();
 })();
 
+
+// A photo removed from the server after 30 days: if the browser has no copy either, a note takes its place.
+document.addEventListener('error', (e) => {
+  const img = e.target;
+  if (img instanceof HTMLImageElement && img.dataset.gone === '1') {
+    const note = document.createElement('div');
+    note.className = 'att att-gone';
+    note.textContent = 'Фото удалено с сервера через 30 дней';
+    img.replaceWith(note);
+  }
+}, true);
