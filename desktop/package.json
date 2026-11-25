@@ -1,7 +1,7 @@
 {
   "name": "ethic-messenger-desktop",
   "productName": "Ethic Messenger",
-  "version": "2.7.0",
+  "version": "2.8.0",
   "description": "Ethic Messenger для Windows",
   "author": "Ethic",
   "main": "main.js",
@@ -9,6 +9,9 @@
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win nsis --publish never"
+  },
+  "dependencies": {
+    "electron-updater": "6.6.2"
   },
   "devDependencies": {
     "electron": "44.7.0",
@@ -18,7 +21,8 @@
     "appId": "com.ethic.messenger",
     "productName": "Ethic Messenger",
     "directories": { "buildResources": "build", "output": "dist" },
-    "files": ["main.js", "preload-picker.js", "preload-splash.js", "picker.html", "offline.html", "splash.html", "build/tray.png", "build/icon.png", "build/logo.png"],
+    "files": ["main.js", "update-flow.js", "preload-picker.js", "preload-splash.js", "preload-caption.js", "preload-update.js", "picker.html", "offline.html", "splash.html", "update.html", "build/tray.png", "build/icon.png", "build/logo.png"],
+    "publish": { "provider": "github", "owner": "TeamEthic", "repo": "ethic-messenger" },
     "win": { "target": "nsis", "icon": "build/icon.png" },
     "nsis": {
       "oneClick": true,

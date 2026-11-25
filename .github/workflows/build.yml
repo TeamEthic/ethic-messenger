@@ -95,14 +95,31 @@ jobs:
         shell: bash
         run: |
           VER="${{ inputs.version }}"; [ -z "$VER" ] && VER="${GITHUB_REF_NAME#v}"
+          FLOOR=$(node -p "require('./package.json').version")
+          TAG=""; [ "${GITHUB_REF_TYPE}" = "tag" ] && TAG="${GITHUB_REF_NAME#v}"
+          node -e '
+            const cmp = (a, b) => {
+              const x = String(a).split(".").map(Number), y = String(b).split(".").map(Number);
+              for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d; }
+              return 0;
+            };
+            const ver = process.argv[1], floor = process.argv[2], tag = process.argv[3];
+            if (!ver) { console.error("version is empty"); process.exit(1); }
+            if (cmp(ver, floor) < 0) { console.error("refusing to build " + ver + ": lower than package.json " + floor); process.exit(1); }
+            if (tag && ver !== tag) { console.error("app version " + ver + " does not match tag " + tag); process.exit(1); }
+          ' "$VER" "$FLOOR" "$TAG"
           npm ci --no-audit --no-fund
           npm version "$VER" --no-git-tag-version --allow-same-version
+          test "$(node -p "require('./package.json').version")" = "$VER"
           npx electron-builder --win nsis --publish never
-          cp dist/Ethic-Messenger-Setup.exe "$GITHUB_WORKSPACE/"
+          cp dist/Ethic-Messenger-Setup.exe dist/latest.yml dist/*.blockmap "$GITHUB_WORKSPACE/"
       - uses: actions/upload-artifact@v7
         with:
           name: windows
-          path: Ethic-Messenger-Setup.exe
+          path: |
+            Ethic-Messenger-Setup.exe
+            latest.yml
+            *.blockmap
 
   release:
     name: Релиз
@@ -137,3 +154,5 @@ jobs:
             dist/Ethic-Messenger.apk
             dist/Ethic-Messenger.ipa
             dist/Ethic-Messenger-Setup.exe
+            dist/latest.yml
+            dist/*.blockmap

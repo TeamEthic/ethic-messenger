@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Доступное обновление</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #141416; color: #f5f5f7;
+    font: 14px/1.4 "Segoe UI", "Manrope", "Helvetica Neue", sans-serif; }
+  .card { height: 100%; display: flex; flex-direction: column; padding: 22px 22px 18px; }
+  h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -.03em; }
+  .ver { margin: 8px 0 0; color: #ffd60a; font-size: 14px; font-weight: 650; }
+  .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: auto; }
+  button { min-height: 36px; padding: 0 16px; border: 0; border-radius: 999px; font: inherit; font-weight: 650; cursor: pointer; }
+  .later { background: rgba(255, 255, 255, .09); color: #fff; }
+  .later:hover { background: rgba(255, 255, 255, .16); }
+  .go { background: linear-gradient(180deg, #fff, #e5e5ea); color: #000; }
+  .go:hover { background: #fff; }
+  .bar { height: 8px; margin-top: 22px; border-radius: 999px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+  .bar span { display: block; height: 100%; width: 0; border-radius: inherit; background: #ffd60a; }
+  .pct { margin: 10px 0 0; color: #aeaeb2; font-variant-numeric: tabular-nums; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div id="choice">
+      <h1>Доступное обновление</h1>
+      <p class="ver" id="choiceVer"></p>
+      <div class="actions">
+        <button class="later" id="later" type="button">Позже</button>
+        <button class="go" id="go" type="button">Обновить</button>
+      </div>
+    </div>
+    <div id="progress" class="hidden">
+      <h1 id="progressTitle">Загрузка обновления</h1>
+      <p class="ver" id="progressVer"></p>
+      <div class="bar"><span id="fill"></span></div>
+      <p class="pct" id="pct">0%</p>
+    </div>
+  </div>
+<script>
+  const choice = document.getElementById('choice');
+  const progress = document.getElementById('progress');
+  const fill = document.getElementById('fill');
+  function show(state) {
+    const version = state && state.version ? 'Версия ' + state.version : '';
+    const phase = state && state.phase;
+    if (phase === 'progress' || phase === 'installing' || phase === 'error') {
+      choice.classList.add('hidden');
+      progress.classList.remove('hidden');
+      document.getElementById('progressVer').textContent = version;
+      const pct = Math.max(0, Math.min(100, Math.round(state.percent || 0)));
+      fill.style.width = pct + '%';
+      if (phase === 'installing') {
+        document.getElementById('progressTitle').textContent = 'Установка обновления';
+        document.getElementById('pct').textContent = 'Приложение перезапустится';
+        fill.style.width = '100%';
+      } else if (phase === 'error') {
+        document.getElementById('progressTitle').textContent = 'Не удалось скачать';
+        document.getElementById('pct').textContent = 'Можно закрыть окно и попробовать позже';
+      } else {
+        document.getElementById('progressTitle').textContent = 'Загрузка обновления';
+        document.getElementById('pct').textContent = pct + '%';
+      }
+    } else {
+      progress.classList.add('hidden');
+      choice.classList.remove('hidden');
+      document.getElementById('choiceVer').textContent = version;
+    }
+  }
+  const params = new URLSearchParams(location.search);
+  if (params.has('preview')) {
+    const phase = params.get('preview');
+    show({ phase: phase === 'progress' ? 'progress' : phase === 'installing' ? 'installing' : 'choice', version: params.get('v') || '2.9.0', percent: Number(params.get('p') || 42) });
+  } else if (window.ethicUpdate) {
+    window.ethicUpdate.onState(show);
+    document.getElementById('later').onclick = () => window.ethicUpdate.later();
+    document.getElementById('go').onclick = () => window.ethicUpdate.install();
+    window.ethicUpdate.ready();
+  }
+</script>
+</body>
+</html>

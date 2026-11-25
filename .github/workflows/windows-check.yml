@@ -25,7 +25,13 @@ jobs:
         shell: bash
         run: |
           npm ci --no-audit --no-fund
+          node update-flow.test.js
           npx electron-builder --win nsis --publish never
+          test -f dist/latest.yml
+          test -f dist/Ethic-Messenger-Setup.exe
+          shopt -s nullglob
+          maps=(dist/*.blockmap)
+          test ${#maps[@]} -gt 0
       - uses: actions/upload-artifact@v7
         with:
           name: windows-pr
