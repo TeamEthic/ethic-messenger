@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+  <title>Ethic Messenger</title>
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="/style.css?v=91">
+</head>
+<body>
+
+<!-- ============ Auth ============ -->
+<section id="auth" class="auth hidden">
+  <div class="auth-hero" aria-hidden="true">
+    <div class="auth-orbit"><span></span><span></span><span></span></div>
+    <img class="auth-lockup" src="/ethic-lockup.webp" alt="" width="460" height="529">
+  </div>
+  <div class="auth-card">
+    <div class="auth-logo"><img src="/ethic-lockup.webp" alt="Ethic Messenger" width="120" height="138"></div>
+    <h1 id="authTitle">С возвращением!</h1>
+    <p class="muted" id="authSub">Рады видеть вас снова в Ethic!</p>
+    <form id="authForm" autocomplete="on">
+      <label class="field-label"><span id="loginLabel">Логин</span> <span class="req">*</span><input name="username" required autocomplete="username" autocapitalize="off" spellcheck="false"></label>
+      <label class="field-label reg-only">Отображаемое имя<input name="displayName" maxlength="48" autocomplete="nickname"></label>
+      <div class="field-label reg-only email-only">Почта <span class="req">*</span>
+        <div class="code-row"><input name="email" type="email" autocomplete="email" autocapitalize="off" spellcheck="false"><button type="button" class="btn" id="regCodeBtn">Получить код</button></div>
+      </div>
+      <label class="field-label reg-only email-only">Код из письма <span class="req">*</span><input name="emailCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 цифр"></label>
+      <label class="field-label">Пароль <span class="req">*</span><input name="password" type="password" required minlength="6" autocomplete="current-password"></label>
+      <label class="field-label reg-only invite-field">Код приглашения <span class="req">*</span><input name="invite" autocomplete="off" spellcheck="false"></label>
+      <label class="field-label hidden" id="loginCodeRow">Код из письма <span class="req">*</span><input name="loginCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 цифр"><span class="muted small" id="loginCodeHint"></span></label>
+      <p class="auth-forgot login-only email-only"><a href="#" id="forgotLink">Забыли пароль?</a></p>
+      <p id="authError" class="error"></p>
+      <button class="btn primary wide" type="submit" id="authSubmit">Вход</button>
+      <button class="btn wide qr-login-btn" type="button" id="qrLoginBtn">Войти по QR-коду с телефона</button>
+      <p class="auth-switch"><span id="authSwitchText">Нужна учётная запись?</span> <a href="#" id="authSwitch">Зарегистрироваться</a></p>
+    </form>
+    <form id="resetForm" class="hidden" autocomplete="on">
+      <label class="field-label">Логин или почта <span class="req">*</span>
+        <div class="code-row"><input name="login" required autocomplete="username" autocapitalize="off" spellcheck="false"><button type="button" class="btn" id="resetCodeBtn">Получить код</button></div>
+      </label>
+      <p class="muted small" id="resetHint"></p>
+      <label class="field-label">Код из письма <span class="req">*</span><input name="code" required inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 цифр"></label>
+      <label class="field-label">Новый пароль <span class="req">*</span><input name="password" type="password" required minlength="6" autocomplete="new-password"></label>
+      <p id="resetError" class="error"></p>
+      <button class="btn primary wide" type="submit">Сменить пароль и войти</button>
+      <p class="auth-switch"><a href="#" id="resetBack">Назад ко входу</a></p>
+    </form>
+  </div>
+</section>
+
+<!-- ============ App ============ -->
+<section id="app" class="app hidden">
+  <nav class="rail" aria-label="Группы">
+    <div class="rail-brand" aria-hidden="true"><img src="/ethic-symbol.webp" alt="" width="34" height="34"></div>
+    <div class="rail-item" data-rail="home">
+      <span class="rail-pill"></span>
+      <button class="rail-btn home" id="homeBtn" title="Личные сообщения" data-label="Чаты"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.3 7.5L3 21l2-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg></button>
+      <span class="rail-badge hidden" id="homeBadge"></span>
+    </div>
+    <div class="rail-item rail-find">
+      <span class="rail-pill"></span>
+      <button class="rail-btn" id="railFindBtn" title="Найти человека или беседу" data-label="Поиск"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+    </div>
+    <div class="rail-sep"></div>
+    <div id="railGroups" class="rail-groups"></div>
+    <div class="rail-item">
+      <button class="rail-btn add" id="newGroupBtn" title="Создать группу"></button>
+    </div>
+    <div class="rail-spacer"></div>
+    <div class="rail-item hidden" id="ticketsItem">
+      <button class="rail-btn admin" id="ticketsBtn" title="Обращения в поддержку"></button>
+      <span class="rail-badge hidden" id="ticketsBadge"></span>
+    </div>
+    <div class="rail-item hidden" id="adminItem">
+      <button class="rail-btn admin" id="adminBtn" title="Админ-панель"></button>
+    </div>
+    <div class="rail-item rail-settings">
+      <span class="rail-pill"></span>
+      <button class="rail-btn icon-btn" id="settingsBtn" title="Настройки" data-label="Настройки"></button>
+    </div>
+    <div class="rail-item rail-me">
+      <button class="userbar-me rail-btn" id="profileBtn" title="Мой профиль" data-label="Профиль">
+        <span id="meAvatar"></span>
+        <span class="userbar-names"><span class="userbar-name" id="meName"></span><span class="userbar-tag" id="meTag"></span></span>
+      </button>
+    </div>
+  </nav>
+
+  <aside class="side">
+    <header class="side-head" id="sideHead"></header>
+    <div class="side-body" id="sideBody"></div>
+  </aside>
+
+  <main class="main" id="mainPane">
+    <div id="emptyState" class="empty-state">
+      <div class="empty-art"><span class="empty-glow" aria-hidden="true"></span><img src="/ethic-symbol.webp" alt="" width="180" height="180"></div>
+      <h2>Ethic Messenger</h2>
+      <p class="muted">Выберите беседу слева или найдите друга.</p>
+      <button class="btn primary" id="emptyFindBtn">Найти или начать беседу</button>
+    </div>
+
+    <div id="chatView" class="chat-view hidden">
+      <header class="topbar">
+        <button class="icon-btn back" id="backBtn" title="Назад"></button>
+        <div class="topbar-id">
+          <button class="topbar-title" id="chatInfoBtn" title="Профиль">
+            <span class="topbar-icon" id="chatIcon"></span>
+            <span class="topbar-name" id="chatTitle"></span>
+          </button>
+          <span class="topbar-divider"></span>
+          <span class="topbar-status" id="chatStatus"></span>
+        </div>
+        <span class="topbar-spacer"></span>
+        <div class="topbar-actions">
+          <button class="icon-btn" id="audioCallBtn" title="Начать голосовой звонок"></button>
+          <button class="icon-btn" id="videoCallBtn" title="Начать видеозвонок"></button>
+          <button class="icon-btn" id="membersBtn" title="Список участников"></button>
+          <button class="icon-btn" id="chatMenuBtn" title="Ещё"></button>
+        </div>
+      </header>
+      <div id="callBanner" class="call-banner hidden">
+        <span class="call-banner-dot"></span><span id="callBannerText">Идёт звонок</span>
+        <button class="btn success small" id="joinCallBtn">Присоединиться</button>
+      </div>
+      <div class="chat-body">
+        <div class="messages-col">
+          <div id="messages" class="messages"></div>
+          <div class="composer-wrap">
+            <div id="requestBar" class="request-bar hidden"></div>
+            <div id="replyBar" class="reply-bar hidden">
+              <span id="replyText"></span>
+              <button class="icon-btn small" id="replyCancel" title="Отмена"></button>
+            </div>
+            <div id="attachPreview" class="attach-preview hidden">
+              <div class="attach-card">
+                <div id="attachThumb" class="attach-thumb"></div>
+                <div class="attach-name" id="attachName"></div>
+                <div class="attach-info muted" id="attachInfo"></div>
+                <button class="icon-btn small attach-remove" id="attachCancel" title="Убрать"></button>
+              </div>
+            </div>
+            <div id="recordBar" class="record-bar hidden">
+              <span class="rec-dot"></span>
+              <span class="rec-time" id="recTime">0:00</span>
+              <span class="muted rec-hint">Идёт запись голосового сообщения…</span>
+              <span class="topbar-spacer"></span>
+              <button class="btn small" id="recCancel">Отмена</button>
+              <button class="btn primary small" id="recSend">Отправить</button>
+            </div>
+            <div id="muteBar" class="mute-bar"></div>
+            <form id="composer" class="composer">
+              <button type="button" class="composer-plus" id="attachBtn" title="Прикрепить файл"></button>
+              <input type="file" id="fileInput" hidden>
+              <div class="composer-field">
+                <textarea id="messageInput" rows="1" maxlength="4000"></textarea>
+                <button type="button" class="icon-btn" id="voiceBtn" title="Голосовое сообщение"></button>
+                <button type="submit" class="icon-btn send-btn hidden" id="sendBtn" title="Отправить"></button>
+              </div>
+            </form>
+            <div class="typing-line" id="typingLine"></div>
+          </div>
+        </div>
+        <aside id="memberList" class="member-list hidden"></aside>
+      </div>
+      <div id="dropOverlay" class="drop-overlay hidden"><div><b>Загрузить файл</b><span>Отпустите, чтобы отправить</span></div></div>
+    </div>
+  </main>
+</section>
+
+<!-- ============ Call ============ -->
+<section id="call" class="call hidden">
+  <header class="call-head">
+    <div class="call-title">
+      <span class="call-icon" id="callIcon"></span>
+      <div>
+        <div id="callTitle" class="title"></div>
+        <div id="callTimer" class="muted small">Подключение…</div>
+      </div>
+    </div>
+    <div class="row">
+      <button class="icon-btn" id="callSettingsBtn" title="Настройки голоса"></button>
+      <button class="icon-btn" id="callMinBtn" title="Свернуть"></button>
+    </div>
+  </header>
+  <div id="grid" class="grid"></div>
+  <button id="enableAudioBtn" class="btn primary enable-audio hidden">Нажмите, чтобы включить звук</button>
+  <footer class="controls">
+    <button class="ctrl" id="micBtn" title="Микрофон"></button>
+    <button class="ctrl" id="camBtn" title="Камера"></button>
+    <button class="ctrl" id="screenBtn" title="Демонстрация экрана"></button>
+    <button class="ctrl" id="addToCallBtn" title="Добавить в звонок"></button>
+    <button class="ctrl danger" id="leaveBtn" title="Отключиться"></button>
+  </footer>
+</section>
+<button id="callPill" class="call-pill hidden"><span class="call-banner-dot"></span><span>Голосовая связь подключена</span></button>
+
+<!-- ============ Modals ============ -->
+<div id="incoming" class="modal hidden">
+  <div class="modal-card incoming-card">
+    <div id="incomingAvatar"></div>
+    <div id="incomingName" class="title"></div>
+    <div id="incomingKind" class="muted"></div>
+    <div class="incoming-actions">
+      <button class="ctrl danger" id="declineBtn" title="Отклонить"></button>
+      <button class="ctrl success" id="acceptAudioBtn" title="Ответить"></button>
+      <button class="ctrl success" id="acceptVideoBtn" title="Ответить с видео"></button>
+    </div>
+  </div>
+</div>
+
+<div id="giftModal" class="modal hidden">
+  <div class="modal-card gift-modal" id="giftBody"></div>
+</div>
+
+<div id="findModal" class="modal hidden">
+  <div class="modal-card find-card">
+    <input id="findInput" type="search" placeholder="Введите username" autocomplete="off">
+    <div class="muted small find-hint">Введите точный username. Написать можно будет, когда человек примет заявку.</div>
+    <div id="findResults" class="find-results"></div>
+  </div>
+</div>
+
+<div id="groupModal" class="modal hidden">
+  <form class="modal-card" id="groupForm">
+    <div class="modal-head">
+      <h2 id="groupModalTitle">Создать группу</h2>
+      <p class="muted small" id="groupModalSub">Название и участники — их можно добавить и позже.</p>
+    </div>
+    <div class="modal-body">
+      <label class="field-label" id="groupTitleLabel">Название<input id="groupTitle" maxlength="64" placeholder="Моя группа"></label>
+      <input id="groupSearch" type="search" placeholder="Поиск по имени" autocomplete="off">
+      <div id="groupUsers" class="pick-list"></div>
+      <p id="groupError" class="error"></p>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn link" data-close>Отмена</button>
+      <button type="submit" class="btn primary" id="groupSubmit">Создать</button>
+    </div>
+  </form>
+</div>
+
+<div id="infoModal" class="modal hidden">
+  <div class="modal-card profile-card" id="infoBody"></div>
+</div>
+
+<!-- Settings (Discord-style full screen) -->
+<div id="settings" class="settings hidden">
+  <nav class="settings-nav">
+    <div class="settings-nav-inner">
+      <div class="settings-cat">Настройки пользователя</div>
+      <button class="settings-tab active" data-pane="account"><span class="tab-ico" style="--tile:#f5f5f7;--tile-fg:#000"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>Моя учётная запись</button>
+      <button class="settings-tab" data-pane="voice"><span class="tab-ico" style="--tile:#30d158"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></svg></span>Голос и видео</button>
+      <button class="settings-tab" data-pane="notify"><span class="tab-ico" style="--tile:#ff453a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg></span>Уведомления</button>
+      <button class="settings-tab" data-pane="privacy"><span class="tab-ico" style="--tile:#48484a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>Конфиденциальность</button>
+      <button class="settings-tab" data-pane="devices"><span class="tab-ico" style="--tile:#636366"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>Устройства</button>
+      <button class="settings-tab hidden" data-pane="plus" id="plusTab"><span class="tab-ico" style="--tile:#ff9f0a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.6 5.6 6.1.6-4.6 4.1 1.3 6L12 16.3 6.6 19.3l1.3-6L3.3 9.2l6.1-.6z"/></svg></span>Подписка Ethic+</button>
+      <button class="settings-tab" data-pane="shop"><span class="tab-ico" style="--tile:#bf5af2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18M12 8S10 3 7.5 4.5 9 8 12 8zM12 8s2-5 4.5-3.5S15 8 12 8z"/></svg></span>Магазин подарков</button>
+      <button class="settings-tab" id="supportTab"><span class="tab-ico" style="--tile:#8e8e93"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.3a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.3-2.5 3.8M12 17.2h.01"/></svg></span>Поддержка</button>
+      <a class="settings-tab donate-tab" href="https://boosty.to/teamethic" target="_blank" rel="noopener"><span class="tab-ico" style="--tile:#ff375f"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21.2l8.8-8.8a5.5 5.5 0 0 0 0-7.8z"/></svg></span>Пожертвовать ♥</a>
+      <div class="settings-sep"></div>
+      <button class="settings-tab danger-text" id="logoutBtn"><span class="tab-ico" style="--tile:#3a3a3c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></span>Выйти</button>
+    </div>
+  </nav>
+  <div class="settings-content">
+    <div class="settings-inner">
+      <section class="settings-pane" data-pane-id="account">
+        <h2>Моя учётная запись</h2>
+        <div class="account-card">
+          <div class="account-banner" id="accountBanner"></div>
+          <div class="account-top">
+            <button type="button" class="avatar-edit" id="avatarEdit" title="Сменить аватар">
+              <span id="profileAvatar"></span>
+              <span class="avatar-edit-hint">Сменить</span>
+            </button>
+            <input type="file" id="avatarInput" accept="image/*" hidden>
+            <div class="account-names">
+              <div class="title big-name"><span id="profileTitle"></span></div>
+              <div class="muted username-line"><span id="profileLogin"></span><span id="profileBadge"></span></div>
+            </div>
+          </div>
+          <div class="account-fields">
+            <form id="profileForm">
+              <label class="field-label">Отображаемое имя<input id="profileName" maxlength="48"></label>
+              <label class="field-label">Юзернейм<input id="profileUsername" maxlength="32" autocomplete="off" autocapitalize="off" spellcheck="false"><span class="muted small" id="profileUsernameHint"></span></label>
+              <label class="field-label">О себе<textarea id="profileBio" maxlength="190" rows="3" placeholder="Расскажите о себе (до 190 символов)"></textarea></label>
+              <div class="row">
+                <button type="submit" class="btn primary">Сохранить</button>
+                <button type="button" class="btn" id="avatarUpload">Загрузить аватар</button>
+                <button type="button" class="btn link danger-text" id="avatarRemove">Удалить аватар</button>
+              </div>
+            </form>
+            <div class="banner-controls">
+              <div class="field-label">Баннер профиля</div>
+              <div class="swatches" id="bannerSwatches"></div>
+              <div class="row">
+                <button type="button" class="btn small" id="bannerUpload">Загрузить картинку</button>
+                <button type="button" class="btn small link" id="bannerRemove">Сбросить</button>
+              </div>
+              <input type="file" id="bannerInput" accept="image/*" hidden>
+            </div>
+            <form class="email-controls email-only" id="emailForm">
+              <div class="field-label">Почта <span class="muted small" id="emailCurrent"></span></div>
+              <div class="code-row"><input id="emailNew" type="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="Новая почта"><button type="button" class="btn" id="emailCodeBtn">Получить код</button></div>
+              <div class="code-row hidden" id="emailCodeRow"><input id="emailCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="Код из письма"><button type="submit" class="btn primary">Подтвердить</button></div>
+              <p class="error" id="emailError"></p>
+            </form>
+          </div>
+        </div>
+      </section>
+      <section class="settings-pane hidden" data-pane-id="plus">
+        <h2>Ethic+</h2>
+        <div id="plusBody"></div>
+      </section>
+      <section class="settings-pane hidden" data-pane-id="shop">
+        <h2>Магазин подарков</h2>
+        <div id="shopBody"></div>
+      </section>
+      <section class="settings-pane hidden" data-pane-id="voice">
+        <h2>Голос и видео</h2>
+        <div class="grid2">
+          <label class="field-label">Устройство ввода<select id="micSelect"></select></label>
+          <label class="field-label">Устройство вывода<select id="speakerSelect"></select></label>
+        </div>
+        <label class="field-label">Подавление шума
+          <select id="noiseSelect">
+            <option value="off">Выключено</option>
+            <option value="standard">Стандартное (встроено в браузер)</option>
+            <option value="strong">Сильное — нейросеть RNNoise</option>
+          </select>
+        </label>
+        <p class="muted small noise-hint">Сильное режет клавиатуру, вентилятор, гул и фоновые звуки. Работает в звонках и голосовых сообщениях.</p>
+        <div class="field-label">Проверка микрофона</div>
+        <div class="meter"><div id="micMeter"></div></div>
+        <label class="field-label">Камера<select id="camSelect"></select></label>
+        <div class="settings-sep"></div>
+        <label class="field-label">Мелодия звонка
+          <span class="row"><select id="ringtoneSelect"></select><button type="button" class="btn small" id="ringtonePreview">▶ Прослушать</button></span>
+        </label>
+        <label class="switch-row"><span>Звуки отправки и получения сообщений</span><input type="checkbox" id="msgSoundToggle" class="switch"></label>
+        <p class="muted small" id="deviceHint"></p>
+      </section>
+      <section class="settings-pane hidden" data-pane-id="devices">
+        <h2>Устройства</h2>
+        <p class="muted small">Все устройства, где выполнен вход в ваш аккаунт. Незнакомое — завершите.</p>
+        <div class="panel-row" id="devicesActions"><button class="btn small" id="logoutOthers">Выйти на всех других</button><button class="btn small primary hidden" id="linkDeviceBtn">Привязать устройство</button></div>
+        <div id="deviceList" class="device-list"></div>
+      </section>
+      <section class="settings-pane hidden" data-pane-id="privacy">
+        <h2>Конфиденциальность</h2>
+        <label class="field-label">Кто видит, что я в сети и когда был(а)
+          <select id="lastSeenSelect"><option value="all">Все</option><option value="contacts">Только те, с кем я переписываюсь</option><option value="nobody">Никто</option></select></label>
+        <h3 class="settings-sub">Чёрный список</h3>
+        <p class="muted small">Эти люди не могут писать вам и звонить. Добавить человека — в его профиле, кнопка ⋯.</p>
+        <div id="blockList" class="check-list"></div>
+      </section>
+      <section class="settings-pane hidden" data-pane-id="notify">
+        <h2>Уведомления</h2>
+        <label class="switch-row"><span>Уведомления на рабочем столе<br><span class="muted small">Показывать новые сообщения и звонки, когда вкладка свёрнута</span></span><input type="checkbox" id="notifyToggle" class="switch"></label>
+      </section>
+    </div>
+    <button class="settings-close" id="settingsClose" title="Закрыть"><span class="esc-x"></span><span class="esc-label">ESC</span></button>
+  </div>
+</div>
+
+<!-- Support tickets -->
+<div id="ticketsModal" class="modal hidden">
+  <div class="modal-card tickets-card">
+    <div class="modal-head row between">
+      <div class="row"><button class="icon-btn hidden" id="ticketsBack" title="Назад"></button><h2 id="ticketsTitle">Поддержка</h2></div>
+      <button class="icon-btn" data-close title="Закрыть" id="ticketsClose"></button>
+    </div>
+    <div class="modal-body" id="ticketsBody"></div>
+  </div>
+</div>
+
+<!-- Admin panel -->
+<div id="adminModal" class="modal hidden">
+  <div class="modal-card admin-card">
+    <div class="modal-head row between">
+      <h2>Админ-панель</h2>
+      <button class="icon-btn" data-close title="Закрыть" id="adminClose"></button>
+    </div>
+    <div class="modal-body admin-body">
+      <div id="adminStats" class="stats"></div>
+      <div class="invite-box">
+        <div>
+          <div class="field-label" style="margin:0">Код приглашения</div>
+          <code id="adminInvite"></code>
+        </div>
+        <div class="row">
+          <button class="btn small" id="inviteCopy">Скопировать</button>
+          <button class="btn small" id="inviteNew">Новый код</button>
+          <button class="btn small" id="inviteOff">Без кода</button>
+        </div>
+      </div>
+      <div class="invite-box hidden" id="annBox">
+        <div>
+          <div class="field-label" style="margin:0">Сообщение всем</div>
+          <span id="annState" class="muted small"></span>
+        </div>
+        <div class="row"><button class="btn small" id="annEdit"></button><button class="btn small hidden" id="annOff">Убрать</button></div>
+      </div>
+      <div class="invite-box hidden" id="maintBox">
+        <div>
+          <div class="field-label" style="margin:0">Технический режим</div>
+          <span id="maintState" class="muted small"></span>
+        </div>
+        <div class="row"><button class="btn small" id="maintToggle"></button></div>
+      </div>
+      <div id="adminReports" class="admin-reports hidden"></div>
+      <input id="adminSearch" type="search" placeholder="Поиск пользователей…" autocomplete="off">
+      <div id="adminUsers" class="admin-list"></div>
+    </div>
+  </div>
+</div>
+
+<div id="lightbox" class="lightbox hidden">
+  <img id="lightboxImg" alt="">
+  <a id="lightboxOpen" target="_blank" rel="noopener">Открыть оригинал</a>
+</div>
+
+<div id="ctxMenu" class="menu hidden"></div>
+<div id="toast" class="toast hidden"></div>
+<div id="audioSink" hidden></div>
+
+<div class="modal hidden" id="annModal">
+  <div class="modal-card ann-card">
+    <div class="ann-title" id="annTitle"></div>
+    <div class="ann-text" id="annText"></div>
+    <div class="ann-goal hidden" id="annGoal"><div class="ann-bar"><div id="annBar"></div></div><div class="ann-sum" id="annSum"></div></div>
+    <div class="ann-actions"><a class="btn primary hidden" id="annLink" target="_blank" rel="noopener"></a><button class="btn" id="annOk">Понятно</button></div>
+  </div>
+</div>
+<script src="/vendor/livekit-client.umd.js?v=2.23.0"></script>
+<div id="panelModal" class="modal hidden">
+  <div class="modal-card panel-card">
+    <div class="modal-head row between"><h2 id="panelTitle"></h2><button class="icon-btn" data-close title="Закрыть" id="panelClose">✕</button></div>
+    <div class="modal-body" id="panelBody"></div>
+  </div>
+</div>
+
+<div id="askModal" class="modal hidden">
+  <form class="modal-card" id="askForm" autocomplete="off">
+    <div class="modal-head">
+      <h2 id="askTitle"></h2>
+      <p class="muted" id="askText"></p>
+    </div>
+    <div class="modal-body" id="askBody"></div>
+    <div class="modal-foot">
+      <button type="button" class="btn" data-close>Отмена</button>
+      <button type="submit" class="btn primary" id="askOk"></button>
+    </div>
+  </form>
+</div>
+
+<div id="warnScreen" class="ended warn hidden">
+  <div class="ended-card">
+    <div class="ended-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+    <h2>Вам выдано предупреждение</h2>
+    <p id="warnReason"></p>
+    <p id="warnLeft" class="warn-left"></p>
+    <button class="btn primary" id="warnOk">Понятно</button>
+  </div>
+</div>
+
+<div class="modal hidden" id="sponsorModal">
+  <div class="modal-card ann-card">
+    <div class="ann-title">Вы купили «Спонсора»?</div>
+    <div class="ann-text">Приложите два скриншота: оплату на Boosty и ваш никнейм на Boosty. Нажмите «Отправить» — мы проверим и включим подписку.</div>
+    <div class="sp-thumbs" id="spThumbs"></div>
+    <input type="file" id="spInput" accept="image/*" multiple hidden>
+    <p class="error" id="spError"></p>
+    <div class="ann-actions">
+      <button class="btn" id="spAdd">Добавить скриншоты</button>
+      <button class="btn primary" id="spSend" disabled>Отправить</button>
+    </div>
+    <button class="sp-cancel" id="spCancel">Не сейчас</button>
+  </div>
+</div>
+
+<div id="promoScreen" class="maint hidden">
+  <div class="maint-body">
+    <img src="/logo-full.png" alt="Ethic Messenger" width="150" height="179">
+    <h1>Привет! Это Ethic Messenger</h1>
+    <p class="maint-lead">Ты отсканировал QR-код и получишь подарок: 7 дней Ethic+ бесплатно.</p>
+    <a class="btn primary promo-go hidden" id="promoApp" href="ethic://hoodie">Открыть в приложении</a>
+    <button class="btn primary promo-go" id="promoGo">Войти в аккаунт и получить</button>
+  </div>
+</div>
+
+<div id="maintScreen" class="maint hidden">
+  <div class="maint-body">
+    <img src="/logo-full.png" alt="Ethic Messenger" width="150" height="179">
+    <h1>Здравствуйте, дорогой пользователь!</h1>
+    <p class="maint-lead">Ethic Messenger в данный момент не работает.</p>
+    <div class="maint-reason"><span>Причина</span><b id="maintReason"></b></div>
+    <p class="maint-back hidden" id="maintBack"></p>
+  </div>
+  <button class="maint-staff" id="maintStaff">Вход для администрации</button>
+</div>
+
+<div id="endedScreen" class="ended hidden">
+  <div class="ended-card">
+    <div class="ended-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></div>
+    <h2 id="endedTitle"></h2>
+    <p id="endedReason"></p>
+    <p id="endedUntil" class="warn-left"></p>
+    <button class="btn danger" id="endedLogout">Выйти из аккаунта</button>
+  </div>
+</div>
+
+<script src="/vendor/qr/qrcode.js?v=1.4.4"></script>
+<script src="/app.js?v=111"></script>
+</body>
+</html>

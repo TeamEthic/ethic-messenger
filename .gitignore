@@ -24,3 +24,12 @@ desktop/dist/
 android/app/google-services.json
 
 android/clicker/build/
+
+# Secrets and local env
+.env
+.env.*
+*.env
+
+# OS
+Thumbs.db
+
